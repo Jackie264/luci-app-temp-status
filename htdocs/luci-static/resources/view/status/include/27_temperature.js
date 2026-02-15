@@ -66,6 +66,21 @@ document.head.append(E('style', {'type': 'text/css'},
 	background: rgba(0,0,0,0.02);
 }
 
+/* Dynamic water level layer: controlled by variables --temp-ratio and --temp-color */
+.temp-status-list-item::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: var(--temp-ratio, 0%);
+	background: var(--temp-color, #52c41a);
+	opacity: 0.12; /* A faint sense of watermark */
+	transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	z-index: 1;
+	pointer-events: none;
+}
+
 .temp-status-sensor-name {
 	order: 1;
 	width: 100%;
@@ -106,19 +121,15 @@ document.head.append(E('style', {'type': 'text/css'},
 	margin-bottom: 0;
 }
 
-/* Dynamic water level layer: controlled by variables --temp-ratio and --temp-color */
-.temp-status-list-item::after {
-	content: '';
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	height: var(--temp-ratio, 0%);
-	background: var(--temp-color, #52c41a);
-	opacity: 0.12; /* A faint sense of watermark */
-	transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-	z-index: 1;
-	pointer-events: none;
+/* Optimize the hover state of the numerical area */
+.temp-status-temp-value[data-tooltip] {
+    position: relative;
+    z-index: 3; /* Make sure to be above the water level mask */
+}
+
+/* If there is a prompt message in the content area, the mouse gesture becomes helpful. */
+.temp-status-temp-value:hover {
+    background: rgba(0,0,0,0.03); /* Gentle highlight feedback */
 }
 
 #temp-status-buttons-wrapper {
@@ -227,14 +238,19 @@ return baseclass.extend({
 	makeTempAreaContent() {
 		this.tempArea.innerHTML = '';
 		this.renderItems((path, name, temp, itemStyle, tpointsString, ratio, color) => {
+			let displayTemp = (temp === null) ? '-' : temp + ' °C';
 			this.tempArea.append(
 				E('div', { 
 					'class': 'temp-status-list-item' + itemStyle,
 					'style': `--temp-ratio: ${ratio}%; --temp-color: ${color};` // In-in dynamic variables
 				}, [
 					E('span', { 'class': 'temp-status-hide-item', 'click': () => this.hideItem(path) }, '&#935;'),
-					E('span', { 'class': 'temp-status-temp-value' }, (temp === null) ? '-' : temp + ' °C'),
-					E('span', { 'class': 'temp-status-sensor-name' }, (tpointsString.length > 0) ? `<span data-tooltip="${tpointsString}">${name}</span>` : name)
+					E('span', { 'class': 'temp-status-temp-value' },
+						(tpointsString.length > 0) ? 
+							`<span style="cursor:help" data-tooltip="${tpointsString}">${displayTemp}</span>` :
+							displayTemp
+					),
+					E('span', { 'class': 'temp-status-sensor-name', 'title': name }, name)
 				])
 			);
 		});
