@@ -4,7 +4,6 @@
 
 document.head.append(E('style', {'type': 'text/css'},
 `
-/* --- 原版样式：完全保留 --- */
 :root {
 	--app-temp-status-font-color: #2e2e2e;
 	--app-temp-status-border-color: var(--border-color-medium, #d4d4d4);
@@ -39,14 +38,14 @@ document.head.append(E('style', {'type': 'text/css'},
 	-webkit-align-items: flex-start;
 	align-items: flex-start;
 	-webkit-justify-content: space-evenly;
-	justify-content: space-evenly; /* 改为均匀分布 */
+	justify-content: space-evenly; /* Change to uniform distribution */
 	-webkit-flex-wrap: wrap;
 	flex-wrap: wrap;
 	-webkit-flex-direction: row;
 	flex-direction: row;
 }
 
-/* --- 卡片化改造：仅通过修饰原版 class 实现 --- */
+/* --- Card transformation: only by modifying the original class --- */
 .temp-status-list-item {
 	display: flex !important;
 	flex-direction: column !important;
@@ -54,10 +53,10 @@ document.head.append(E('style', {'type': 'text/css'},
 	align-items: center !important;
 	flex-grow: 1;
 	flex-shrink: 0;
-	width: 100px !important; /* 桌面端宽度 */
+	width: 100px !important; /* Desktop width */
 	max-width: 100px !important;
 	min-width: 70px !important;
-	height: 95px !important;
+	height: 100px !important;
 	margin: 5px 4px !important;
 	padding: 0 !important;
 	border: 1px solid var(--app-temp-status-border-color) !important;
@@ -73,67 +72,103 @@ document.head.append(E('style', {'type': 'text/css'},
 	height: 24px;
 	line-height: 24px;
 	background: rgba(0,0,0,0.05);
-	font-size: 11px;
+	font-size: 90%;
+	font-weight: bold;
 	text-align: center;
-	padding: 0 4px !important;
+	padding: 0 1em 0 .5em !important;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	z-index: 2;
 }
 
 .temp-status-temp-value {
 	order: 2;
+	flex-grow: 1;
 	width: 100% !important;
 	margin: 0 !important;
-	padding: 15px 0 5px 0 !important;
+	padding: 0 !important;
 	text-align: center !important;
-	font-weight: bold;
-	font-size: 13px;
+	font-weight: normal;
+	font-size: 11px;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	z-index: 2;
 }
 
-/* 插入温度计图标 */
+/* Insert the thermometer icon */
 .temp-status-temp-value::before {
 	content: '🌡️';
-	display: block;
-	font-size: 1.2em;
-	margin-bottom: 4px;
+	display: inline-block;
+	font-size: 1em;
+	margin-right: 5px;
+	margin-bottom: 0;
 }
 
-.temp-status-hide-item {
+/* Dynamic water level layer: controlled by variables --temp-ratio and --temp-color */
+.temp-status-list-item::after {
+	content: '';
 	position: absolute;
-	right: 0;
-	top: 0;
-	z-index: 10;
-	margin: 0 !important;
-	padding: 0 4px !important;
-	border: none !important;
-	font-size: 14px;
-	color: #bbb;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: var(--temp-ratio, 0%);
+	background: var(--temp-color, #52c41a);
+	opacity: 0.12; /* A faint sense of watermark */
+	transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	z-index: 1;
+	pointer-events: none;
 }
 
-#temp-status-buttons-wrapper { margin-bottom: 1em; }
+#temp-status-buttons-wrapper {
+	margin-bottom: 1em;
+}
 .temp-status-button {
 	display: inline-block;
 	cursor: pointer;
-	margin: 2px 4px 2px 0 !important;
-	padding: 2px 4px;
+	margin: 2px 2px 2px 0 !important;
+	padding: 0 8px 0 4px;
 	border: 1px dotted;
 	-webkit-border-radius: 4px;
 	-moz-border-radius: 4px;
 	border-radius: 4px;
 	opacity: 0.7;
 }
-.temp-status-button:hover { opacity: 0.9; }
+.temp-status-button:hover {
+	opacity: 0.9;
+}
+.temp-status-button:active {
+	opacity: 1.0;
+}
+.temp-status-list-item .temp-status-hide-item {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 10;
+	cursor: pointer;
+	margin: 0 !important;
+	padding: .5em .5em !important;
+	border: none !important;
+	font-size: 10px;
+	color: #bbb;
+}
+.temp-status-hide-item:hover {
+	opacity: 1.0;
+	color: #ff4d4f;
+}
 
-/* --- 手机端适配：遵循 20.5% 宽度原则 --- */
+/* --- Mobile terminal adaptation: follow the principle of 20.5% width --- */
 @media screen and (max-width: 480px) {
 	.temp-status-list-item {
 		flex-basis: 20.5% !important;
 		max-width: 20.5% !important;
+		aspect-ratio: 1 / 1 !important;
+		height: auto !important;
 		margin: 4px 1% !important;
 	}
-	.temp-status-sensor-name { font-size: 9px !important; height: 20px !important; line-height: 20px !important; }
-	.temp-status-temp-value { font-size: 10px !important; padding: 10px 0 5px 0 !important; }
+	.temp-status-sensor-name { font-size: 85% !important; font-weight: bold !important; height: 20px !important; line-height: 20px !important; }
+	.temp-status-temp-value { font-size: 9px !important; padding: 0 !important; flex-grow: 1; }
 }
 `));
 
@@ -191,9 +226,12 @@ return baseclass.extend({
 
 	makeTempAreaContent() {
 		this.tempArea.innerHTML = '';
-		this.renderItems((path, name, temp, itemStyle, tpointsString) => {
+		this.renderItems((path, name, temp, itemStyle, tpointsString, ratio, color) => {
 			this.tempArea.append(
-				E('div', { 'class': 'temp-status-list-item' + itemStyle }, [
+				E('div', { 
+					'class': 'temp-status-list-item' + itemStyle,
+					'style': `--temp-ratio: ${ratio}%; --temp-color: ${color};` // In-in dynamic variables
+				}, [
 					E('span', { 'class': 'temp-status-hide-item', 'click': () => this.hideItem(path) }, '&#935;'),
 					E('span', { 'class': 'temp-status-temp-value' }, (temp === null) ? '-' : temp + ' °C'),
 					E('span', { 'class': 'temp-status-sensor-name' }, (tpointsString.length > 0) ? `<span data-tooltip="${tpointsString}">${name}</span>` : name)
@@ -203,7 +241,6 @@ return baseclass.extend({
 		return this.tempArea;
 	},
 
-	// 提炼公共渲染逻辑，完全遵循原版的数据处理流程
 	renderItems(callback) {
 		if(!this.sensorsData || !this.tempData) return;
 		for(let [k, v] of Object.entries(this.sensorsData)) {
@@ -227,8 +264,11 @@ return baseclass.extend({
 							else if(tp.type == 'hot') tempHot = t;
 						}
 					}
+					// Calculate the water level ratio and color
+					let ratio = Math.min(Math.max((temp || 0) / tempOverheat, 0), 1) * 100;
+					let color = (temp >= tempOverheat) ? '#ff4d4f' : (temp >= tempHot ? '#faad14' : '#52c41a');
 					let style = (temp >= tempOverheat) ? ' temp-status-overheat' : (temp >= tempHot) ? ' temp-status-hot' : '';
-					callback(j.path, name, temp, style, tpointsString);
+					callback(j.path, name, temp, style, tpointsString, ratio, color);
 				}
 			}
 		}
